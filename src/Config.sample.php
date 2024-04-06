@@ -55,5 +55,12 @@
     */
     const PROXY_TYPE = "";
     const PROXY = "";
+
+    /*
+    Select node type, currently supported network:
+      "": bitcoin (default)
+      "dogecoin": dogecoin (experimental support)
+    */
+    const BLOCKCHAIN_NETWORK = "";
   }
 ?>
