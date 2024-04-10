@@ -112,6 +112,7 @@ function createBlocksContent(){
 		$content["blocks"][$block["height"]]["mediantime"] = getDateTime($block["mediantime"]);
 		$content["blocks"][$block["height"]]["timeago"] = round((time() - $block["time"])/60);
 		$content["blocks"][$block["height"]]["coinbasetx"] = $block["tx"][0];
+if (Config::BLOCKCHAIN_NETWORK == ""){
 		$coinbaseTx = $bitcoind->getrawtransaction($block["tx"][0], 1, $block["hash"]);
     $currentReward = 50 / pow(2, floor($block["height"] / 210000));
     $accuReward = 0;
@@ -119,6 +120,11 @@ function createBlocksContent(){
       $accuReward += $vout["value"];
     }
     $content["blocks"][$block["height"]]["fees"] = round($accuReward - $currentReward, 4);
+}
+if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+                $blockstats = $bitcoind->getblockstats($blockHash);
+                $content["blocks"][$block["height"]]["fees"] = $blockstats["totalfee"]/100000000;   
+}
 		$content["totalFees"] += $content["blocks"][$block["height"]]["fees"];
 		$content["blocks"][$block["height"]]["txcount"] = count($block["tx"]);
 		$content["totalTx"] += $content["blocks"][$block["height"]]["txcount"];
