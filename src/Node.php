@@ -64,8 +64,11 @@ class Node {
 		$blockchainInfo = $bitcoind->getblockchaininfo();
 		$miningInfo = $bitcoind->getmininginfo();
 		$tInfo = $bitcoind->getnettotals();
+if ((Config::BLOCKCHAIN_NETWORK == "dogecoin") && ($networkInfo["version"] < 1150000)){
+		$uptimeInfo = -1;}
+else{
 		$uptimeInfo = $bitcoind->uptime();
-		
+}		
 		$this->blockHeight = checkInt($blockchainInfo["blocks"]);
 		$this->pruMode = checkBool($blockchainInfo["pruned"]);
 		$this->chain = ucfirst(htmlspecialchars($blockchainInfo["chain"]));

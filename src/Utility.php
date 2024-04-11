@@ -224,6 +224,8 @@ function getDateTime($timestamp){
 function timeToString($time){
 	$seconds = checkInt($time);
 	switch (true) {
+		case $seconds == -1;
+			return "N/A";
 		case $seconds < 60:
 			return $seconds . " seconds";
     case $seconds < 3600:
