@@ -162,10 +162,15 @@ else{
 		$this->hashRate = round(checkInt($miningInfo["networkhashps"])/1000000000000000000,3);
 		$this->mNetTime = getDateTime($blockchainInfo["mediantime"]);
 		// Blockchain -> Soft forks
+if (Config::BLOCKCHAIN_NETWORK == ""){
 		if(isset($blockchainInfo["softforks"])) {
       $this->softForks = checkSoftFork($blockchainInfo["softforks"]);
     } else {
       $this->softForks = checkSoftFork($bitcoind->getdeploymentinfo()["deployments"]);
     }
+}
+if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+      $this->softForks = checkSoftFork($blockchainInfo["bip9_softforks"]);
+}
 	}
 }

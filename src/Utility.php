@@ -246,6 +246,7 @@ function checkMemPoolLimited($memPoolFee, $relayTxFee){
 }
 
 function checkSoftFork($softForks){
+	if (Config::BLOCKCHAIN_NETWORK == ""){
 	foreach($softForks as $name => &$sf){
 		if($sf['type'] === 'bip9' && $sf['bip9']['status'] === "started"){
 			if(!preg_match("/[A-Za-z0-9 ]{2,25}/", $name)){
@@ -262,6 +263,26 @@ function checkSoftFork($softForks){
 		}else{
 			unset($softForks[$name]);
 		}
+	}
+	}
+	if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+	foreach($softForks as $name => &$sf){
+		if($sf['status'] === "started"){
+			if(!preg_match("/[A-Za-z0-9 ]{2,25}/", $name)){
+				unset($softForks[$name]);
+				continue;
+			}
+			$sf['status'] = ucfirst(preg_replace("/[^A-Za-z]/", '', $sf['status']));
+			$sf['startTime'] = date("Y-m-d",$sf['startTime']);
+			$sf['timeout'] = date("Y-m-d",$sf['timeout']);
+			$sf['since'] = checkInt($sf['since']);
+			if(isset($sf['statistics'])){
+				$sf['process'] = round(($sf['statistics']['count']/$sf['statistics']['period'])*100,1);
+			}
+                }else{
+                        unset($softForks[$name]);
+                }
+	}
 	}
 	return $softForks;
 }
