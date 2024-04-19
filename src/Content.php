@@ -235,9 +235,14 @@ function createWalletContent(){
 	global $bitcoind, $error;
 	
 	try{
+		if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+		$unspents = $bitcoind->listunspent();
+		$walletInfo = $bitcoind->getwalletinfo();
+		} else {
 		$unspents = $bitcoind->listunspent();
 		$walletInfo = $bitcoind->getwalletinfo();
 		$balances = $bitcoind->getbalances();
+		}
 	}catch(\Exception $e){
 		if ($e->getCode() == -18) {
 			$error = "Wallet data not found.";
@@ -247,6 +252,14 @@ function createWalletContent(){
 		return "";
 	}
 
+ if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+	$content['wallet']["walletversion"] = checkInt($walletInfo["walletversion"]);
+	$content['wallet']["balance"] = checkInt($walletInfo["balance"]);
+	//$content['wallet']["watchonly"] = checkInt($watchOnlyBalance);
+	$content['wallet']["unconfirmed_balance"] = checkInt($walletInfo["unconfirmed_balance"]);
+	$content['wallet']["immature_balance"] = checkInt($walletInfo["immature_balance"]);
+	$content['wallet']["txcount"] = checkInt($walletInfo["txcount"]);
+ } else {
 	$content['wallet']["walletversion"] = checkInt($walletInfo["walletversion"]);	
 	$content['wallet']["balance"] = checkInt($balances["mine"]["trusted"]);	
   if(isset($balances["watchonly"])) {
@@ -257,6 +270,7 @@ function createWalletContent(){
 	$content['wallet']["unconfirmed_balance"] = checkInt($balances["mine"]["untrusted_pending"]);	
 	$content['wallet']["immature_balance"] = checkInt($balances["mine"]["immature"]);	
 	$content['wallet']["txcount"] = checkInt($walletInfo["txcount"]);	
+ }
 	
 	$i = 0;
 
@@ -264,12 +278,18 @@ function createWalletContent(){
 		$content["utxo"][$i]["hash"] = $unspent["txid"];
 		$content["utxo"][$i]["vout"] = $unspent["vout"];
 		$content["utxo"][$i]["address"] = $unspent["address"];
+		if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+		$content["utxo"][$i]["account"] = $unspent["account"];
+		} else {
 		$content["utxo"][$i]["label"] = $unspent["label"];
+		}
 		$content["utxo"][$i]["amount"] = $unspent["amount"];
 		$content["utxo"][$i]["confs"] = $unspent["confirmations"];
 		$content["utxo"][$i]["spendable"] = $unspent["spendable"];
 		$content["utxo"][$i]["solvable"] = $unspent["solvable"];
+		if(Config::BLOCKCHAIN_NETWORK != "dogecoin"){
 		$content["utxo"][$i]["safe"] = $unspent["safe"];
+		}
 
 		$i++;
 	}
