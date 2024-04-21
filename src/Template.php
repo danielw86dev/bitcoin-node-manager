@@ -7,12 +7,11 @@ class Template {
 
 	public function __construct($data = array()) {
 		$this->section = $data['section'];
-         if (Config::BLOCKCHAIN_NETWORK == ""){
+		if (Config::BLOCKCHAIN_NETWORK == "dogecoin") {
+		$this->sectionPath = "views/".$this->section."_doge.phtml";
+		} else {
 		$this->sectionPath = "views/".$this->section.".phtml";
-         }
-         if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
-               $this->sectionPath = "views/".$this->section."_doge.phtml";
-         }
+		}
 		$this->data = $data;
 	}
 
@@ -23,12 +22,11 @@ class Template {
 			//Starts output buffering
 			ob_start();
 			//Includes contents
-        if (Config::BLOCKCHAIN_NETWORK == ""){
-      include 'views/header.phtml';
-        }
-        if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+      if (Config::BLOCKCHAIN_NETWORK == "dogecoin") {
       include 'views/header_doge.phtml';
-        }
+      } else {
+      include 'views/header.phtml';
+      }
       if(!empty($error)){  
       echo '<div class="alert alert-danger col-md-3 col-sm-6 col-xs-12" role="alert">'.$error.'</div>'; 
       } else {
