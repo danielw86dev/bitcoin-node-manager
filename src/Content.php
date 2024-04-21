@@ -112,19 +112,18 @@ function createBlocksContent(){
 		$content["blocks"][$block["height"]]["mediantime"] = getDateTime($block["mediantime"]);
 		$content["blocks"][$block["height"]]["timeago"] = round((time() - $block["time"])/60);
 		$content["blocks"][$block["height"]]["coinbasetx"] = $block["tx"][0];
-if (Config::BLOCKCHAIN_NETWORK == ""){
-		$coinbaseTx = $bitcoind->getrawtransaction($block["tx"][0], 1, $block["hash"]);
-    $currentReward = 50 / pow(2, floor($block["height"] / 210000));
-    $accuReward = 0;
-    foreach($coinbaseTx["vout"] as $vout){
-      $accuReward += $vout["value"];
-    }
-    $content["blocks"][$block["height"]]["fees"] = round($accuReward - $currentReward, 4);
-}
-if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
-                $blockstats = $bitcoind->getblockstats($blockHash);
-                $content["blocks"][$block["height"]]["fees"] = $blockstats["totalfee"]/100000000;   
-}
+		if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+		  $blockstats = $bitcoind->getblockstats($blockHash);
+		  $content["blocks"][$block["height"]]["fees"] = $blockstats["totalfee"]/100000000; 
+		} else {
+		  $coinbaseTx = $bitcoind->getrawtransaction($block["tx"][0], 1, $block["hash"]);
+		  $currentReward = 50 / pow(2, floor($block["height"] / 210000));
+		  $accuReward = 0;
+		  foreach($coinbaseTx["vout"] as $vout){
+		    $accuReward += $vout["value"];
+		  }
+		  $content["blocks"][$block["height"]]["fees"] = round($accuReward - $currentReward, 4);
+		}
 		$content["totalFees"] += $content["blocks"][$block["height"]]["fees"];
 		$content["blocks"][$block["height"]]["txcount"] = count($block["tx"]);
 		$content["totalTx"] += $content["blocks"][$block["height"]]["txcount"];
@@ -223,8 +222,8 @@ function createMempoolContent(){
 	global $bitcoind;
 
 	if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
-	$content['txs'] = $bitcoind->getrawmempool(TRUE);
-	$content['txs'] = array_slice($content['txs'], 0, CONFIG::DISPLAY_TXS);
+	  $content['txs'] = $bitcoind->getrawmempool(TRUE);
+	  $content['txs'] = array_slice($content['txs'], 0, CONFIG::DISPLAY_TXS);
 	}
 	$content['node'] = new Node();
 
@@ -235,13 +234,10 @@ function createWalletContent(){
 	global $bitcoind, $error;
 	
 	try{
-		if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
 		$unspents = $bitcoind->listunspent();
 		$walletInfo = $bitcoind->getwalletinfo();
-		} else {
-		$unspents = $bitcoind->listunspent();
-		$walletInfo = $bitcoind->getwalletinfo();
-		$balances = $bitcoind->getbalances();
+		if(Config::BLOCKCHAIN_NETWORK != "dogecoin"){
+		 $balances = $bitcoind->getbalances();
 		}
 	}catch(\Exception $e){
 		if ($e->getCode() == -18) {
@@ -252,25 +248,22 @@ function createWalletContent(){
 		return "";
 	}
 
- if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
 	$content['wallet']["walletversion"] = checkInt($walletInfo["walletversion"]);
-	$content['wallet']["balance"] = checkInt($walletInfo["balance"]);
-	//$content['wallet']["watchonly"] = checkInt($watchOnlyBalance);
-	$content['wallet']["unconfirmed_balance"] = checkInt($walletInfo["unconfirmed_balance"]);
-	$content['wallet']["immature_balance"] = checkInt($walletInfo["immature_balance"]);
 	$content['wallet']["txcount"] = checkInt($walletInfo["txcount"]);
- } else {
-	$content['wallet']["walletversion"] = checkInt($walletInfo["walletversion"]);	
-	$content['wallet']["balance"] = checkInt($balances["mine"]["trusted"]);	
-  if(isset($balances["watchonly"])) {
-    $content['wallet']["watchonly"] = checkInt($balances["watchonly"]["trusted"]);
-  } else {
-    $content['wallet']["watchonly"] = 0;
-  }
-	$content['wallet']["unconfirmed_balance"] = checkInt($balances["mine"]["untrusted_pending"]);	
-	$content['wallet']["immature_balance"] = checkInt($balances["mine"]["immature"]);	
-	$content['wallet']["txcount"] = checkInt($walletInfo["txcount"]);	
- }
+	if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+	  $content['wallet']["balance"] = checkInt($walletInfo["balance"]);
+	  $content['wallet']["unconfirmed_balance"] = checkInt($walletInfo["unconfirmed_balance"]);
+	  $content['wallet']["immature_balance"] = checkInt($walletInfo["immature_balance"]);
+	} else {
+	  $content['wallet']["balance"] = checkInt($balances["mine"]["trusted"]);	
+	  $content['wallet']["unconfirmed_balance"] = checkInt($balances["mine"]["untrusted_pending"]);	
+	  $content['wallet']["immature_balance"] = checkInt($balances["mine"]["immature"]);
+	}
+	if(isset($balances["watchonly"])) {
+	  $content['wallet']["watchonly"] = checkInt($balances["watchonly"]["trusted"]);
+	} else {
+	  $content['wallet']["watchonly"] = 0;
+	}
 	
 	$i = 0;
 
@@ -279,16 +272,16 @@ function createWalletContent(){
 		$content["utxo"][$i]["vout"] = $unspent["vout"];
 		$content["utxo"][$i]["address"] = $unspent["address"];
 		if(Config::BLOCKCHAIN_NETWORK == "dogecoin"){
-		$content["utxo"][$i]["account"] = $unspent["account"];
+		  $content["utxo"][$i]["label"] = $unspent["account"];
 		} else {
-		$content["utxo"][$i]["label"] = $unspent["label"];
+		  $content["utxo"][$i]["label"] = $unspent["label"];
 		}
 		$content["utxo"][$i]["amount"] = $unspent["amount"];
 		$content["utxo"][$i]["confs"] = $unspent["confirmations"];
 		$content["utxo"][$i]["spendable"] = $unspent["spendable"];
 		$content["utxo"][$i]["solvable"] = $unspent["solvable"];
 		if(Config::BLOCKCHAIN_NETWORK != "dogecoin"){
-		$content["utxo"][$i]["safe"] = $unspent["safe"];
+		  $content["utxo"][$i]["safe"] = $unspent["safe"];
 		}
 
 		$i++;
