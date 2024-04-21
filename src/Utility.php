@@ -246,25 +246,6 @@ function checkMemPoolLimited($memPoolFee, $relayTxFee){
 }
 
 function checkSoftFork($softForks){
-	if (Config::BLOCKCHAIN_NETWORK == ""){
-	foreach($softForks as $name => &$sf){
-		if($sf['type'] === 'bip9' && $sf['bip9']['status'] === "started"){
-			if(!preg_match("/[A-Za-z0-9 ]{2,25}/", $name)){
-				unset($softForks[$name]);
-				continue;
-			}
-			$sf['status'] = ucfirst(preg_replace("/[^A-Za-z]/", '', $sf['bip9']['status']));
-			$sf['start_time'] = date("Y-m-d",$sf['bip9']['start_time']);
-			$sf['timeout'] = date("Y-m-d",$sf['bip9']['timeout']);
-			$sf['since'] = checkInt($sf['bip9']['since']);
-			if(isset($sf['bip9']['statistics'])){
-				$sf['process'] = round(($sf['bip9']['statistics']['count']/$sf['bip9']['statistics']['period'])*100,1);
-			}
-		}else{
-			unset($softForks[$name]);
-		}
-	}
-	}
 	if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
 	foreach($softForks as $name => &$sf){
 		if($sf['status'] === "started"){
@@ -282,6 +263,24 @@ function checkSoftFork($softForks){
                 }else{
                         unset($softForks[$name]);
                 }
+	}
+	} else {
+	foreach($softForks as $name => &$sf){
+		if($sf['type'] === 'bip9' && $sf['bip9']['status'] === "started"){
+			if(!preg_match("/[A-Za-z0-9 ]{2,25}/", $name)){
+				unset($softForks[$name]);
+				continue;
+			}
+			$sf['status'] = ucfirst(preg_replace("/[^A-Za-z]/", '', $sf['bip9']['status']));
+			$sf['start_time'] = date("Y-m-d",$sf['bip9']['start_time']);
+			$sf['timeout'] = date("Y-m-d",$sf['bip9']['timeout']);
+			$sf['since'] = checkInt($sf['bip9']['since']);
+			if(isset($sf['bip9']['statistics'])){
+				$sf['process'] = round(($sf['bip9']['statistics']['count']/$sf['bip9']['statistics']['period'])*100,1);
+			}
+		}else{
+			unset($softForks[$name]);
+		}
 	}
 	}
 	return $softForks;
