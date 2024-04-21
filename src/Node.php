@@ -64,11 +64,11 @@ class Node {
 		$blockchainInfo = $bitcoind->getblockchaininfo();
 		$miningInfo = $bitcoind->getmininginfo();
 		$tInfo = $bitcoind->getnettotals();
-if ((Config::BLOCKCHAIN_NETWORK == "dogecoin") && ($networkInfo["version"] < 1150000)){
-		$uptimeInfo = -1;}
-else{
+		if ((Config::BLOCKCHAIN_NETWORK == "dogecoin") && ($networkInfo["version"] < 1150000)){
+		$uptimeInfo = -1;
+		} else {
 		$uptimeInfo = $bitcoind->uptime();
-}		
+		}
 		$this->blockHeight = checkInt($blockchainInfo["blocks"]);
 		$this->pruMode = checkBool($blockchainInfo["pruned"]);
 		$this->chain = ucfirst(htmlspecialchars($blockchainInfo["chain"]));
@@ -162,15 +162,15 @@ else{
 		$this->hashRate = round(checkInt($miningInfo["networkhashps"])/1000000000000000000,3);
 		$this->mNetTime = getDateTime($blockchainInfo["mediantime"]);
 		// Blockchain -> Soft forks
-if (Config::BLOCKCHAIN_NETWORK == ""){
-		if(isset($blockchainInfo["softforks"])) {
-      $this->softForks = checkSoftFork($blockchainInfo["softforks"]);
-    } else {
-      $this->softForks = checkSoftFork($bitcoind->getdeploymentinfo()["deployments"]);
-    }
-}
-if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
-      $this->softForks = checkSoftFork($blockchainInfo["bip9_softforks"]);
-}
+		if (Config::BLOCKCHAIN_NETWORK == "dogecoin"){
+		$this->softForks = checkSoftFork($blockchainInfo["bip9_softforks"]);
+		} else {
+		  if(isset($blockchainInfo["softforks"])) {
+		    $this->softForks = checkSoftFork($blockchainInfo["softforks"]);
+		  } else {
+		    $this->softForks = checkSoftFork($bitcoind->getdeploymentinfo()["deployments"]);
+		  }
+		}
+
 	}
 }
